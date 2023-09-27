@@ -1,19 +1,38 @@
 import AccountProfile from "@/components/forms/AccountProfile";
+import { fetchUser } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
+
+interface UserInfo {
+  _id?: string;
+  username?: string;
+  name?: string;
+  bio?: string;
+  image?: string;
+}
 
 async function Page() {
   const user = await currentUser();
 
-  const userInfo = {};
+  let userInfo: UserInfo = {};
+
+  if (user) {
+    const existingUser = await fetchUser(user.id);
+    userInfo._id = JSON.stringify(existingUser._id);
+    userInfo.username = existingUser.username;
+    userInfo.name = existingUser.name;
+    userInfo.bio = existingUser.bio;
+    userInfo.image = existingUser.image;
+  }
 
   const userData = {
-    id: user?.id,
-    objectId: userInfo?._id,
-    username: userInfo?.username || user?.username,
+    id: user?.id || "",
+    objectId: userInfo?._id || "",
+    username: userInfo?.username || user?.username || "",
     name: userInfo?.name || user?.firstName || "",
     bio: userInfo?.bio || "",
-    image: userInfo?.image || user?.imageUrl,
+    image: userInfo?.image || user?.imageUrl || "",
   };
+
   return (
     <main className="mx-auto flex max-w-3xl flex-col justify-start px-10 py-20">
       <h1 className="head-text">Onboarding</h1>
