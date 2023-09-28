@@ -1,36 +1,22 @@
 import AccountProfile from "@/components/forms/AccountProfile";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
-
-interface UserInfo {
-  _id?: string;
-  username?: string;
-  name?: string;
-  bio?: string;
-  image?: string;
-}
+import { redirect } from "next/navigation";
 
 async function Page() {
   const user = await currentUser();
+  if (!user) return null;
 
-  let userInfo: UserInfo = {};
-
-  if (user) {
-    const existingUser = await fetchUser(user.id);
-    userInfo._id = JSON.stringify(existingUser._id);
-    userInfo.username = existingUser.username;
-    userInfo.name = existingUser.name;
-    userInfo.bio = existingUser.bio;
-    userInfo.image = existingUser.image;
-  }
+  const userInfo = await fetchUser(user.id);
+  if (userInfo?.onboarded) redirect("/");
 
   const userData = {
-    id: user?.id || "",
-    objectId: userInfo?._id || "",
-    username: userInfo?.username || user?.username || "",
-    name: userInfo?.name || user?.firstName || "",
-    bio: userInfo?.bio || "",
-    image: userInfo?.image || user?.imageUrl || "",
+    id: user?.id,
+    objectId: userInfo?._id,
+    username: userInfo ? userInfo?.username : user?.username,
+    name: userInfo ? userInfo?.name : user?.firstName || "",
+    bio: userInfo ? userInfo?.bio : "",
+    image: userInfo ? userInfo?.image : user?.imageUrl,
   };
 
   return (
